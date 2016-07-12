@@ -4,6 +4,9 @@ var find = globals.find;
 var tol = globals.tol;
 var apt = globals.apt;
 
+find.OpenProject('model.stpnc')
+apt.OpenProject('model.stpnc')
+
 var expect = require("chai").expect;
 
 describe("Test A GetWorkpieceType", function(){
