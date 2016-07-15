@@ -55,7 +55,9 @@ NAN_MODULE_INIT(AptStepMaker::Init)
     Nan::SetPrototypeMethod(tpl, "GetToolIdentifier", GetToolIdentifier);
     Nan::SetPrototypeMethod(tpl, "GetToolNumber", GetToolNumber);
     Nan::SetPrototypeMethod(tpl, "GetUUID", GetUUID);
+    Nan::SetPrototypeMethod(tpl, "GetWorkpieceExecutableAll", GetWorkpieceExecutableAll);
     Nan::SetPrototypeMethod(tpl, "OpenProject", OpenProject);
+    Nan::SetPrototypeMethod(tpl, "OpenSTEP", OpenSTEP);
     Nan::SetPrototypeMethod(tpl, "SaveAsModules", SaveAsModules);
     Nan::SetPrototypeMethod(tpl, "SaveAsP21", SaveAsP21);
 
@@ -134,6 +136,34 @@ NAN_METHOD(AptStepMaker::GetUUID)
     return;
 }
 
+NAN_METHOD(AptStepMaker::GetWorkpieceExecutableAll)
+{
+    AptStepMaker * apt = Nan::ObjectWrap::Unwrap<AptStepMaker>(info.This());
+    if (apt == 0) //Throw Exception
+    return;
+    if (info.Length() != 1) //Function should get one argument.
+    return;
+    if (!info[0]->IsInt32())
+    return;
+
+    Nan::Maybe<int32_t> wpid = Nan::To<int32_t>(info[0]);
+    int count = 0;
+    if (!apt->_apt->workpiece_executable_count(wpid.FromJust(), count)) //Throw Exception
+    return;
+    
+    v8::Local<v8::Array> array = Nan::New<v8::Array>();
+    for (int i = 0; i < count; i++) {
+        int exe_id = 0;
+        if (!apt->_apt->workpiece_executable_next(wpid.FromJust(), i, exe_id)) //Throw Exception
+            return;
+        else
+            array->Set(i, Nan::New(exe_id));
+    }
+
+    info.GetReturnValue().Set(array);
+    return;
+}
+
 NAN_METHOD(AptStepMaker::OpenProject) {
     AptStepMaker* apt = Nan::ObjectWrap::Unwrap<AptStepMaker>(info.This());
     if (apt == 0) //Throw Exception
@@ -145,6 +175,21 @@ NAN_METHOD(AptStepMaker::OpenProject) {
     char * fname = 0;
     v8StringToChar(info[0], fname);
     if (!apt->_apt->read_238_file(fname)) //TODO: Handle Error.
+	return;
+    return; //Success finding, return.
+}
+
+NAN_METHOD(AptStepMaker::OpenSTEP) {
+    AptStepMaker* apt = Nan::ObjectWrap::Unwrap<AptStepMaker>(info.This());
+    if (apt == 0) //Throw Exception
+	return;
+    if (info.Length() != 1) //Function should get one argument.
+	return;
+    if (!info[0]->IsString())
+	return;
+    char * fname = 0;
+    v8StringToChar(info[0], fname);
+    if (!apt->_apt->read_203_file(fname)) //TODO: Handle Error.
 	return;
     return; //Success finding, return.
 }
